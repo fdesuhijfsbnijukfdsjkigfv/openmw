@@ -126,6 +126,7 @@ namespace MWGui
         getWidget(mMagicka, "Magicka");
         getWidget(mStamina, "Stamina");
         getWidget(mEnemyHealth, "EnemyHealth");
+        getWidget(mEnemyFatigue, "EnemyFatigue");
         mHealthManaStaminaBaseLeft = mHealthFrame->getLeft();
 
         MyGUI::Widget *healthFrame, *magickaFrame, *fatigueFrame;
@@ -379,6 +380,7 @@ namespace MWGui
         if (mEnemyHealth->getVisible() && mEnemyHealthTimer < 0)
         {
             mEnemyHealth->setVisible(false);
+            mEnemyFatigue->setVisible(false);
             mWeaponSpellBox->setPosition(mWeaponSpellBox->getPosition() + MyGUI::IntPoint(0, 20));
         }
 
@@ -630,9 +632,11 @@ namespace MWGui
             return;
         MWMechanics::CreatureStats& stats = enemy.getClass().getCreatureStats(enemy);
         mEnemyHealth->setProgressRange(100);
+        mEnemyFatigue->setProgressRange(100);
         // Health is usually cast to int before displaying. Actors die whenever they are < 1 health.
         // Therefore any value < 1 should show as an empty health bar. We do the same in statswindow :)
         mEnemyHealth->setProgressPosition(static_cast<size_t>(stats.getHealth().getRatio() * 100));
+        mEnemyFatigue->setProgressPosition(static_cast<size_t>(stats.getFatigue().getRatio() * 100));
 
         static const float fNPCHealthBarFade = MWBase::Environment::get()
                                                    .getESMStore()
@@ -640,8 +644,10 @@ namespace MWGui
                                                    .find("fNPCHealthBarFade")
                                                    ->mValue.getFloat();
         if (fNPCHealthBarFade > 0.f)
+           {
             mEnemyHealth->setAlpha(std::clamp(mEnemyHealthTimer / fNPCHealthBarFade, 0.f, 1.f));
-    }
+            mEnemyFatigue->setAlpha(std::clamp(mEnemyHealthTimer / fNPCHealthBarFade, 0.f, 1.f));
+        }
 
     void HUD::setEnemy(const MWWorld::Ptr& enemy)
     {
@@ -654,6 +660,7 @@ namespace MWGui
         if (!mEnemyHealth->getVisible())
             mWeaponSpellBox->setPosition(mWeaponSpellBox->getPosition() - MyGUI::IntPoint(0, 20));
         mEnemyHealth->setVisible(true);
+        mEnemyFatigue->setVisible(true);
         updateEnemyHealthBar();
     }
 
